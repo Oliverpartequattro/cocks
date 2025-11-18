@@ -5,14 +5,14 @@ import bodyParser from "body-parser";
 import cors from "cors";
 
 const app = express();
-const PORT = 3000;
+const PORT = 4100;
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
 // MongoDB connection
-const MONGODB_URI = "mongodb+srv://ronczoliver:negerek@cluster0.hmkrhja.mongodb.net/cock?retryWrites=true&w=majority";
+const MONGODB_URI = "mongodb+srv://ronczoliver:nigger@cluster0.hmkrhja.mongodb.net/?appName=Cluster0";
 
 mongoose
   .connect(MONGODB_URI, {
