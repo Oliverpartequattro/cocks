@@ -1,18 +1,17 @@
-import request from "supertest";
-import mockingoose from "mockingoose";
-import app, { Cock } from "../server.js";
+const request = require("supertest");
+const mockingoose = require("mockingoose");
+const { app, Cock } = require("../server");
 
-describe("Cock API tests", () => {
+describe("Cock API", () => {
   beforeEach(() => {
     mockingoose.resetAll();
   });
 
-  test("GET /cocks - should return list", async () => {
+  it("GET /cocks - should return all cocks", async () => {
     const fakeData = [
       { _id: "1", name: "BigBoy", size: 32, color: "pink" },
       { _id: "2", name: "TinyTim", size: 12, color: "purple" },
     ];
-
     mockingoose(Cock).toReturn(fakeData, "find");
 
     const res = await request(app).get("/cocks");
@@ -22,9 +21,8 @@ describe("Cock API tests", () => {
     expect(res.body[0].name).toBe("BigBoy");
   });
 
-  test("GET /cocks/:id - return single", async () => {
+  it("GET /cocks/:id - should return single cock", async () => {
     const fake = { _id: "123", name: "Monster", size: 45, color: "black" };
-
     mockingoose(Cock).toReturn(fake, "findOne");
 
     const res = await request(app).get("/cocks/123");
@@ -33,9 +31,8 @@ describe("Cock API tests", () => {
     expect(res.body.name).toBe("Monster");
   });
 
-  test("POST /cocks - create cock", async () => {
+  it("POST /cocks - should create a cock", async () => {
     const body = { name: "TestCock", size: 21, color: "blue" };
-
     mockingoose(Cock).toReturn(body, "save");
 
     const res = await request(app).post("/cocks").send(body);
@@ -44,22 +41,18 @@ describe("Cock API tests", () => {
     expect(res.body.name).toBe("TestCock");
   });
 
-  test("PUT /cocks/:id - update cock", async () => {
+  it("PUT /cocks/:id - should update a cock", async () => {
     const updated = { _id: "abc", name: "Updated", size: 66, color: "red" };
-
     mockingoose(Cock).toReturn(updated, "findOneAndUpdate");
 
-    const res = await request(app)
-      .put("/cocks/abc")
-      .send({ name: "Updated", size: 66 });
+    const res = await request(app).put("/cocks/abc").send({ name: "Updated", size: 66 });
 
     expect(res.status).toBe(200);
     expect(res.body.size).toBe(66);
   });
 
-  test("DELETE /cocks/:id - delete cock", async () => {
+  it("DELETE /cocks/:id - should delete a cock", async () => {
     const fake = { _id: "55", name: "DeleteMe", size: 13, color: "white" };
-
     mockingoose(Cock).toReturn(fake, "findOneAndDelete");
 
     const res = await request(app).delete("/cocks/55");

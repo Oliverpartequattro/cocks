@@ -17,6 +17,6 @@
   },
   "scripts": {
     "start": "node start.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": "jest"
   }
 }

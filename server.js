@@ -1,26 +1,12 @@
-// server.js
-import express from "express";
-import mongoose from "mongoose";
-import bodyParser from "body-parser";
-import cors from "cors";
+const express = require("express");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const app = express();
-const PORT = 4100;
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-
-// MongoDB connection
-const MONGODB_URI = "mongodb+srv://ronczoliver:nigger@cluster0.hmkrhja.mongodb.net/?appName=Cluster0";
-
-mongoose
-  .connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Schema & Model
 const cockSchema = new mongoose.Schema({
@@ -31,9 +17,10 @@ const cockSchema = new mongoose.Schema({
 
 const Cock = mongoose.model("Cock", cockSchema, "cocks");
 
+module.exports = { app, Cock };
+
 // Routes
 
-// 1️⃣ GET - összes dokumentum
 app.get("/cocks", async (req, res) => {
   try {
     const cocks = await Cock.find();
@@ -43,7 +30,6 @@ app.get("/cocks", async (req, res) => {
   }
 });
 
-// 2️⃣ GET /:id - egy adott dokumentum
 app.get("/cocks/:id", async (req, res) => {
   try {
     const cock = await Cock.findById(req.params.id);
@@ -54,7 +40,6 @@ app.get("/cocks/:id", async (req, res) => {
   }
 });
 
-// 3️⃣ POST - új dokumentum létrehozása
 app.post("/cocks", async (req, res) => {
   try {
     const newCock = new Cock(req.body);
@@ -65,29 +50,37 @@ app.post("/cocks", async (req, res) => {
   }
 });
 
-// 4️⃣ PUT /:id - meglévő frissítése
 app.put("/cocks/:id", async (req, res) => {
   try {
-    const updatedCock = await Cock.findByIdAndUpdate(req.params.id, req.body, {
+    const updated = await Cock.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
-    if (!updatedCock) return res.status(404).json({ message: "Not found" });
-    res.json(updatedCock);
+    if (!updated) return res.status(404).json({ message: "Not found" });
+    res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// 5️⃣ DELETE /:id - törlés
 app.delete("/cocks/:id", async (req, res) => {
   try {
-    const deletedCock = await Cock.findByIdAndDelete(req.params.id);
-    if (!deletedCock) return res.status(404).json({ message: "Not found" });
+    const deleted = await Cock.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Not found" });
     res.json({ message: "Deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Start server
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+// Ha akarsz, külön fájlban indíthatod a szervert:
+if (require.main === module) {
+  const PORT = 4100;
+  const MONGODB_URI = "mongodb+srv://ronczoliver:nigger@cluster0.hmkrhja.mongodb.net/?appName=Cluster0";
+
+  mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+      console.log("✅ Connected to MongoDB");
+      app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+    })
+    .catch(err => console.error(err));
+}
