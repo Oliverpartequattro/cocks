@@ -12,8 +12,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "supertest": "^6.3.3",
-    "mockingoose": "^2.34.0"
+    "node-mocks-http": "^1.17.2"
   },
   "scripts": {
     "start": "node start.js",

@@ -1,63 +1,198 @@
-const request = require("supertest");
-const mockingoose = require("mockingoose");
 const { app, Cock } = require("../server");
+const httpMocks = require("node-mocks-http");
 
-describe("Cock API", () => {
-  beforeEach(() => {
-    mockingoose.resetAll();
+// Mock függvények
+Cock.find = jest.fn();
+Cock.findById = jest.fn();
+Cock.create = jest.fn();
+Cock.findByIdAndUpdate = jest.fn();
+Cock.findByIdAndDelete = jest.fn();
+
+let req, res;
+
+beforeEach(() => {
+  req = httpMocks.createRequest();
+  res = httpMocks.createResponse();
+});
+
+//
+// 1️⃣ GET /cocks
+//
+describe("GET /cocks", () => {
+  it("should return empty array", async () => {
+    Cock.find.mockResolvedValue([]);
+    req.method = "GET";
+    req.url = "/cocks";
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res._getData())).toEqual([]);
   });
 
-  it("GET /cocks - should return all cocks", async () => {
-    const fakeData = [
-      { _id: "1", name: "BigBoy", size: 32, color: "pink" },
-      { _id: "2", name: "TinyTim", size: 12, color: "purple" },
-    ];
-    mockingoose(Cock).toReturn(fakeData, "find");
+  it("should return 2 items", async () => {
+    Cock.find.mockResolvedValue([
+      { name: "Big Joe", size: 30, color: "black" },
+      { name: "Tiny Tim", size: 5, color: "pink" },
+    ]);
 
-    const res = await request(app).get("/cocks");
+    req.method = "GET";
+    req.url = "/cocks";
 
-    expect(res.status).toBe(200);
-    expect(res.body.length).toBe(2);
-    expect(res.body[0].name).toBe("BigBoy");
+    await app._router.handle(req, res, () => {});
+    const data = JSON.parse(res._getData());
+
+    expect(data.length).toBe(2);
   });
 
-  it("GET /cocks/:id - should return single cock", async () => {
-    const fake = { _id: "123", name: "Monster", size: 45, color: "black" };
-    mockingoose(Cock).toReturn(fake, "findOne");
+  it("should return 500 on DB error", async () => {
+    Cock.find.mockRejectedValue(new Error("DB fail"));
 
-    const res = await request(app).get("/cocks/123");
+    req.method = "GET";
+    req.url = "/cocks";
 
-    expect(res.status).toBe(200);
-    expect(res.body.name).toBe("Monster");
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(500);
+  });
+});
+
+//
+// 2️⃣ GET /cocks/:id
+//
+describe("GET /cocks/:id", () => {
+  it("should return one item", async () => {
+    Cock.findById.mockResolvedValue({ name: "Mega", size: 40 });
+
+    req.method = "GET";
+    req.url = "/cocks/123";
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(200);
   });
 
-  it("POST /cocks - should create a cock", async () => {
-    const body = { name: "TestCock", size: 21, color: "blue" };
-    mockingoose(Cock).toReturn(body, "save");
+  it("should return 404 if not found", async () => {
+    Cock.findById.mockResolvedValue(null);
+    req.method = "GET";
+    req.url = "/cocks/999";
 
-    const res = await request(app).post("/cocks").send(body);
-
-    expect(res.status).toBe(201);
-    expect(res.body.name).toBe("TestCock");
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(404);
   });
 
-  it("PUT /cocks/:id - should update a cock", async () => {
-    const updated = { _id: "abc", name: "Updated", size: 66, color: "red" };
-    mockingoose(Cock).toReturn(updated, "findOneAndUpdate");
+  it("should return 500 on DB fail", async () => {
+    Cock.findById.mockRejectedValue(new Error("fail"));
 
-    const res = await request(app).put("/cocks/abc").send({ name: "Updated", size: 66 });
+    req.method = "GET";
+    req.url = "/cocks/555";
 
-    expect(res.status).toBe(200);
-    expect(res.body.size).toBe(66);
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(500);
+  });
+});
+
+//
+// 3️⃣ POST /cocks
+//
+describe("POST /cocks", () => {
+  it("should create new cock", async () => {
+    Cock.prototype.save = jest.fn().mockResolvedValue(true);
+
+    req.method = "POST";
+    req.url = "/cocks";
+    req.body = { name: "NewOne", size: 12, color: "white" };
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(201);
   });
 
-  it("DELETE /cocks/:id - should delete a cock", async () => {
-    const fake = { _id: "55", name: "DeleteMe", size: 13, color: "white" };
-    mockingoose(Cock).toReturn(fake, "findOneAndDelete");
+  it("should return the created data", async () => {
+    Cock.prototype.save = jest.fn();
+    req.method = "POST";
+    req.url = "/cocks";
+    req.body = { name: "Buddy", size: 22 };
 
-    const res = await request(app).delete("/cocks/55");
+    await app._router.handle(req, res, () => {});
+    expect(JSON.parse(res._getData()).name).toBe("Buddy");
+  });
 
-    expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Deleted successfully");
+  it("should return 400 on invalid body", async () => {
+    Cock.prototype.save = jest.fn().mockRejectedValue(new Error("invalid"));
+
+    req.method = "POST";
+    req.url = "/cocks";
+    req.body = {};
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+//
+// 4️⃣ PUT /cocks/:id
+//
+describe("PUT /cocks/:id", () => {
+  it("should update an item", async () => {
+    Cock.findByIdAndUpdate.mockResolvedValue({ name: "Updated" });
+
+    req.method = "PUT";
+    req.url = "/cocks/123";
+    req.body = { name: "Updated" };
+
+    await app._router.handle(req, res, () => {});
+    expect(JSON.parse(res._getData()).name).toBe("Updated");
+  });
+
+  it("should return 404 on missing item", async () => {
+    Cock.findByIdAndUpdate.mockResolvedValue(null);
+
+    req.method = "PUT";
+    req.url = "/cocks/444";
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("should return 400 on DB error", async () => {
+    Cock.findByIdAndUpdate.mockRejectedValue(new Error("bad data"));
+
+    req.method = "PUT";
+    req.url = "/cocks/555";
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+//
+// 5️⃣ DELETE /cocks/:id
+//
+describe("DELETE /cocks/:id", () => {
+  it("should delete an item", async () => {
+    Cock.findByIdAndDelete.mockResolvedValue({});
+
+    req.method = "DELETE";
+    req.url = "/cocks/321";
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("should return 404 if item not found", async () => {
+    Cock.findByIdAndDelete.mockResolvedValue(null);
+
+    req.method = "DELETE";
+    req.url = "/cocks/000";
+
+    await app._router.handle(req, res, () => {});
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("should return success message", async () => {
+    Cock.findByIdAndDelete.mockResolvedValue({});
+
+    req.method = "DELETE";
+    req.url = "/cocks/999";
+
+    await app._router.handle(req, res, () => {});
+    expect(JSON.parse(res._getData()).message).toBe("Deleted successfully");
   });
 });
