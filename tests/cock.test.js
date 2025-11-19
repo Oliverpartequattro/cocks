@@ -19,7 +19,7 @@ beforeEach(() => {
     req = httpMocks.createRequest();
     res = httpMocks.createResponse();
 
-    
+
     Cock.find.mockImplementation(() => ({
         select: jest.fn().mockResolvedValue([]),
     }));
@@ -36,7 +36,7 @@ describe("GET /cocks", () => {
         req.method = "GET";
         req.url = "/cocks";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(200);
         expect(JSON.parse(res._getData())).toEqual([]);
     });
@@ -52,7 +52,7 @@ describe("GET /cocks", () => {
         req.method = "GET";
         req.url = "/cocks";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         const data = JSON.parse(res._getData());
 
         expect(data.length).toBe(2);
@@ -68,7 +68,7 @@ describe("GET /cocks/:id", () => {
         req.method = "GET";
         req.url = "/cocks/123";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(200);
     });
 
@@ -78,7 +78,7 @@ describe("GET /cocks/:id", () => {
         req.method = "GET";
         req.url = "/cocks/999";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(404);
     });
 
@@ -88,7 +88,7 @@ describe("GET /cocks/:id", () => {
         req.method = "GET";
         req.url = "/cocks/555";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(500);
     });
 });
@@ -103,7 +103,7 @@ describe("POST /cocks", () => {
         req.url = "/cocks";
         req.body = { nev: "NewOne", kor: 2 };
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(201);
     });
 
@@ -114,7 +114,7 @@ describe("POST /cocks", () => {
         req.url = "/cocks";
         req.body = { nev: "Buddy", kor: 3 };
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         const data = JSON.parse(res._getData());
 
         expect(data.nev).toBe("Buddy");
@@ -127,7 +127,7 @@ describe("POST /cocks", () => {
         req.url = "/cocks";
         req.body = {};
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(400);
     });
 });
@@ -142,7 +142,7 @@ describe("PUT /cocks/:id", () => {
         req.url = "/cocks/123";
         req.body = { nev: "Updated" };
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(JSON.parse(res._getData()).nev).toBe("Updated");
     });
 
@@ -152,7 +152,7 @@ describe("PUT /cocks/:id", () => {
         req.method = "PUT";
         req.url = "/cocks/444";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(404);
     });
 
@@ -162,10 +162,12 @@ describe("PUT /cocks/:id", () => {
         req.method = "PUT";
         req.url = "/cocks/555";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(400);
     });
 });
+
+
 
 
 
@@ -176,7 +178,7 @@ describe("DELETE /cocks/:id", () => {
         req.method = "DELETE";
         req.url = "/cocks/321";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(200);
     });
 
@@ -186,28 +188,44 @@ describe("DELETE /cocks/:id", () => {
         req.method = "DELETE";
         req.url = "/cocks/000";
 
-        await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
         expect(res.statusCode).toBe(404);
     });
 
-    it("should return success message", async () => {
+    test("should call findByIdAndDelete with correct ID", async () => {
         Cock.findByIdAndDelete.mockResolvedValue({});
+
+        req.method = "DELETE";
+        req.url = "/cocks/777";
+
+        await app._router.handle(req, res, () => { });
+
+        expect(Cock.findByIdAndDelete).toHaveBeenCalledWith("777");
+    });
+
+    it("should return 404 if numeric _id not found", async () => {
+        Cock.findByIdAndDelete.mockResolvedValue(null);
 
         req.method = "DELETE";
         req.url = "/cocks/999";
 
-        await app._router.handle(req, res, () => {});
-        expect(JSON.parse(res._getData()).message).toBe("Deleted successfully");
+        await app._router.handle(req, res, () => { });
+
+        expect(res.statusCode).toBe(404);
     });
 
-    test("should call findByIdAndDelete with correct ID", async () => {
-    Cock.findByIdAndDelete.mockResolvedValue({}); 
+    it("should return 500 if database throws an error", async () => {
+        Cock.findByIdAndDelete.mockRejectedValue(new Error("DB failure"));
 
-    req.method = "DELETE";
-    req.url = "/cocks/777";
+        req.method = "DELETE";
+        req.url = "/cocks/123";
 
-    await app._router.handle(req, res, () => {});
+        await app._router.handle(req, res, () => { });
 
-    expect(Cock.findByIdAndDelete).toHaveBeenCalledWith("777");
-});
+        expect(res.statusCode).toBe(500);
+        expect(JSON.parse(res._getData()).error).toBe("DB failure");
+    });
+
+
+
 });
