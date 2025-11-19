@@ -72,15 +72,14 @@ app.delete("/cocks/:id", async (req, res) => {
   }
 });
 
-// Ha akarsz, külön fájlban indíthatod a szervert:
 if (require.main === module) {
   const PORT = 4100;
   const MONGODB_URI = "mongodb+srv://ronczoliver:nigger@cluster0.hmkrhja.mongodb.net/?appName=Cluster0";
 
   mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
-      console.log("✅ Connected to MongoDB");
-      app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+      console.log("Connected to MongoDB");
+      app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
     })
     .catch(err => console.error(err));
 }
