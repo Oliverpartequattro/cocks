@@ -186,3 +186,5 @@ describe("DELETE /cocks/:id", () => {
     expect(JSON.parse(res._getData()).message).toBe("Deleted successfully");
   });
 });
+
+//új branch teszt
