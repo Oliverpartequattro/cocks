@@ -4,11 +4,9 @@ const cors = require("cors");
  
 const app = express();
 
-// Body parser helyesen
 app.use(express.json());
 app.use(cors());
 
-// Schema & Model
 const cockSchema = new mongoose.Schema({
   _id: Number,
   nev: String,
@@ -22,7 +20,6 @@ const Cock = mongoose.model("Cock", cockSchema, "cocks");
 
 module.exports = { app, Cock };
 
-// Routes
 
 app.get("/cocks", async (req, res) => {
   try {
@@ -46,7 +43,7 @@ app.get("/cocks/:id", async (req, res) => {
 
 app.post("/cocks", async (req, res) => {
   try {
-    console.log("POST BODY >>>", req.body);  // Debug
+    console.log("POST BODY >>>", req.body); 
     const newCock = new Cock(req.body);
     await newCock.save();
     res.status(201).json(newCock);
@@ -77,11 +74,9 @@ app.delete("/cocks/:id", async (req, res) => {
   }
 });
 
-// Start server normally
 if (require.main === module) {
   const PORT = 4100;
 
-  // Megfelelő adatbázis neve (cock)
   const MONGODB_URI = "mongodb+srv://ronczoliver:nigger@cluster0.hmkrhja.mongodb.net/cock";
 
   mongoose
