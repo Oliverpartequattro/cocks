@@ -13,5 +13,6 @@ test("DELETE /cocks/:id returns empty object body on success", async () => {
 
     expect(res.statusCode).toBe(200);
     const data = JSON.parse(res._getData());
-    expect(data).toEqual({});
+    // server responds with a deletion message
+    expect(data).toEqual({ message: "Deleted successfully" });
 });
