@@ -199,4 +199,15 @@ describe("DELETE /cocks/:id", () => {
         await app._router.handle(req, res, () => {});
         expect(JSON.parse(res._getData()).message).toBe("Deleted successfully");
     });
+
+    test("should call findByIdAndDelete with correct ID", async () => {
+    Cock.findByIdAndDelete.mockResolvedValue({}); 
+
+    req.method = "DELETE";
+    req.url = "/cocks/777";
+
+    await app._router.handle(req, res, () => {});
+
+    expect(Cock.findByIdAndDelete).toHaveBeenCalledWith("777");
+});
 });
