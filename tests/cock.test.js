@@ -1,7 +1,7 @@
 const { app, Cock } = require("../server");
 const httpMocks = require("node-mocks-http");
 
-// Mock függvények
+
 Cock.find = jest.fn();
 Cock.findById = jest.fn();
 Cock.create = jest.fn();
@@ -15,9 +15,7 @@ beforeEach(() => {
   res = httpMocks.createResponse();
 });
 
-//
-// 1️⃣ GET /cocks
-//
+
 describe("GET /cocks", () => {
   it("should return empty array", async () => {
     Cock.find.mockResolvedValue([]);
@@ -55,9 +53,7 @@ describe("GET /cocks", () => {
   });
 });
 
-//
-// 2️⃣ GET /cocks/:id
-//
+
 describe("GET /cocks/:id", () => {
   it("should return one item", async () => {
     Cock.findById.mockResolvedValue({ name: "Mega", size: 40 });
@@ -89,9 +85,7 @@ describe("GET /cocks/:id", () => {
   });
 });
 
-//
-// 3️⃣ POST /cocks
-//
+
 describe("POST /cocks", () => {
   it("should create new cock", async () => {
     Cock.prototype.save = jest.fn().mockResolvedValue(true);
@@ -126,9 +120,7 @@ describe("POST /cocks", () => {
   });
 });
 
-//
-// 4️⃣ PUT /cocks/:id
-//
+
 describe("PUT /cocks/:id", () => {
   it("should update an item", async () => {
     Cock.findByIdAndUpdate.mockResolvedValue({ name: "Updated" });
@@ -162,9 +154,7 @@ describe("PUT /cocks/:id", () => {
   });
 });
 
-//
-// 5️⃣ DELETE /cocks/:id
-//
+
 describe("DELETE /cocks/:id", () => {
   it("should delete an item", async () => {
     Cock.findByIdAndDelete.mockResolvedValue({});
