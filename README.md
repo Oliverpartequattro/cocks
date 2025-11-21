@@ -45,5 +45,3 @@ npm test
 - `tests/cock.post.headers.test.js` – Ellenőrzi, hogy a `POST /cocks` 201 státuszt és JSON Content-Type-ot ad.
 
 Megjegyzés: a meglévő `tests/cock.test.js` számos endpoint-ot lefed integrációs stílusban (GET, POST, PUT, DELETE). Az új tesztek kiegészítik ezeket olyan rövid, célzott ellenőrzésekkel, amelyek nem ismétlik a korábbi aszserciókat.
-
-Ha szeretnéd, átállíthatom a teszteket `supertest`-re, hogy az Express teljes middleware láncát élesebben teszteljük (ajánlott, ha pontos 404 viselkedést akarsz garantálni).
